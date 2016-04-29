@@ -43,6 +43,9 @@ classdef NeuralNet2 < handle
             for i=1:numel(layerSizes)-1
                 this.weights{i} = zeros(layerSizes(i)+1, layerSizes(i+1));
             end
+
+            % Initialize weights
+            init(this);
         end
 
         
@@ -73,7 +76,9 @@ classdef NeuralNet2 < handle
         
         % Perform training with Stochastic Gradient Descent
         function perf = train(this, X, Y, numIter)
-            
+
+            if nargin < 4, numIter = 1; end
+
             % Ensure correct sizes
             assert(size(X,1) == size(Y,1))
             
@@ -87,10 +92,7 @@ classdef NeuralNet2 < handle
             
             % Initialize cost function array
             perf = zeros(1, numIter);
-            
-            % Initialize weights
-            init(this);
-            
+
             % Total number of examples
             N = size(X,1);
             
