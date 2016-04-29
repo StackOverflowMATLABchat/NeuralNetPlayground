@@ -270,7 +270,7 @@ classdef NeuralNet2 < handle
         % Inputs are in a 2D matrix of N x M
         % N is the number of examples
         % M is the number of features / number of input neurons
-        function OUT = sim(this, X)
+        function [OUT,OUTS] = sim(this, X)
             % Check if the total number of features matches the
             % total number of input neurons
             assert(size(X,2) == this.inputSize);
@@ -280,7 +280,10 @@ classdef NeuralNet2 < handle
 
             %%% Begin algorithm
             % Start with first layer
-            IN = X;
+            OUT = X;
+
+            OUTS = cell(1,numel(this.weights)+1);
+            OUTS{1} = OUT;
 
             % Get activation function
             fcn = getActivationFunction(this.ActivationFunction);
@@ -289,10 +292,8 @@ classdef NeuralNet2 < handle
             for ii=1:numel(this.weights)
                 % Compute inputs into each neuron and corresponding
                 % outputs
-                OUT = fcn([IN ones(N,1)] * this.weights{ii});
-
-                % Save for next iteration
-                IN = OUT;
+                OUT = fcn([OUT ones(N,1)] * this.weights{ii});
+                OUTS{ii+1} = OUT;
             end
         end
     end
