@@ -6,7 +6,6 @@ classdef NeuralNet2 < handle
         RegularizationType
         RegularizationRate
         BatchSize
-        Debug
     end
 
     properties (Access = private)
@@ -25,7 +24,6 @@ classdef NeuralNet2 < handle
             this.RegularizationType = 'None';
             this.RegularizationRate = 0;
             this.BatchSize = 10;
-            this.Debug = false;
 
             % network structure (fully-connected feed-forward)
             % Obtain input layer neuron size
@@ -253,13 +251,6 @@ classdef NeuralNet2 < handle
                     for jj = 1 : L
                         perf(ii) = perf(ii) + ...
                             (0.5*lambda/B)*sum(sum((this.weights{jj}(1:end-1,:)).^2));
-                    end
-                end
-
-                % Debugging output
-                if this.Debug
-                    if mod(ii,skipFactor) == 1 || ii == numIter
-                        fprintf('Iteration #%d - Cost: %4.6e\n', ii, perf(ii));
                     end
                 end
             end
