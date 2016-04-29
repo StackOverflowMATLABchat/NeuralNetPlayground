@@ -31,7 +31,6 @@ net.RegularizationType = 'L2';
 net.RegularizationRate = 0.01;
 net.ActivationFunction = 'Tanh';
 net.BatchSize = 10;
-net.Debug = true;
 display(net)
 
 %% Find optimal weights
