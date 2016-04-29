@@ -1,102 +1,95 @@
-%%% Neural Network Engine Example
-clearvars;
-close all;
+%% Neural Network Demo
+% Demonstrates how to use |NeuralNet| class for binary classification.
+%
 
-%%% 1. Declare total number of input neurons, hidden layer neurons and output
-%%% neurons
-input_neurons = 2;
-hidden_neurons = [4 2];
-output_neurons = 1;
+%% Data
+% Create XOR dataset
 
-%%% 2. Set total number of iterations
-N = 10000;
+% 2D points in [-1.1,1.1] range with corresponding {-1,+1} labels
+m = 400;
+X = rand(m,2)*2 - 1;
+X = X + sign(X)*0.1;
+Y = (prod(X,2) >= 0)*2 - 1;
+whos X Y
 
-%%% 3. Create synthetic dataset
-rng(123);
-M = 100;
-tol = 0.1;
-x1 = bsxfun(@plus, rand(M,2) - 0.5, [-0.5-tol, 0.5+tol]); % Top-Left quadrant
-x2 = bsxfun(@plus, rand(M,2) - 0.5, [0.5+tol, 0.5+tol]); % Top-Right quadrant
-x3 = bsxfun(@plus, rand(M,2) - 0.5, [-0.5-tol, -0.5-tol]); % Bottom-Left quadrant
-x4 = bsxfun(@plus, rand(M,2) - 0.5, [0.5+tol, -0.5-tol]); % Bottom-Right quadrant
+% shuffle and split into training and test sets
+ratio = 0.5;
+mTrain = floor(ratio*m);
+mTest = m - mTrain;
+indTrain = randperm(m);
+Xtrain = X(indTrain(1:mTrain),:);
+Ytrain = Y(indTrain(1:mTrain));
+Xtest = X(indTrain(mTrain+1:end),:);
+Ytest = Y(indTrain(mTrain+1:end));
 
-% Create final dataset
-X = [x1; x2; x3; x4];
-Y = [-ones(M,1); ones(2*M,1); -ones(M,1)];
+%% Network
+% Create the neural network
 
-% Randomly sample and create training and test sets
-per = 0.5;
-m = numel(Y);
-ind = randperm(m);
-pt = floor(per*m);
-Xtrain = X(ind(1:pt), :);
-Ytrain = Y(ind(1:pt));
-Xtest = X(ind(pt+1:end),:);
-Ytest = Y(ind(pt+1:end));
-mTrain = size(Xtrain,1);
+net = NeuralNet2([size(X,2) 4 2 size(Y,2)]);
+net.LearningRate = 0.1;
+net.RegularizationType = 'L2';
+net.RegularizationRate = 0.01;
+net.ActivationFunction = 'Tanh';
+net.BatchSize = 10;
+net.Debug = true;
+display(net)
 
-%%% 4. Declare NN engine
-NN = NeuralNet2([input_neurons, hidden_neurons, output_neurons]);
-NN.LearningRate = 0.1;
-NN.RegularizationType = 'L2';
-NN.RegularizationRate = 0.01;
-NN.ActivationFunction = 'Tanh';
-NN.BatchSize = 10;
-NN.Debug = true;
+%% Find optimal weights
 
-%%% 6. Find optimal weights
-costVal = NN.train(Xtrain, Ytrain, N);
-figure;
-gscatter(Xtrain(:,1), Xtrain(:,2), Ytrain, [0 0.4470 0.7410; 0.8500 0.3250 0.0980], ...
-    'x');
-hold on;
-gscatter(Xtest(:,1), Xtest(:,2), Ytest, [0 0.4470 0.7410; 0.8500 0.3250 0.0980], ...
-    '.');
+% train network
+N = 5000;  % number of iterations
+disp('Training...'); tic
+costVal = net.train(Xtrain, Ytrain, N);
+toc
 
-%%% 7. Compute predictions for training and testing data
-predicthTrain = 2*double(NN.sim(Xtrain) >= 0) - 1;
-predicthTest = 2*double(NN.sim(Xtest) >= 0) - 1;
+% compute predictions
+disp('Test...'); tic
+predictTrain = sign(net.sim(Xtrain));
+predictTest = sign(net.sim(Xtest));
+toc
 
-%%% 8. Compute classification accuracy for training and testing data
-fprintf('Classification Accuracy for Training Data: %f\n', ...
-        100*sum(predicthTrain == Ytrain) / numel(Ytrain));
+% classification accuracy
+fprintf('Final cost after training: %f\n', costVal(end));
+fprintf('Train accuracy: %.2f%%\n', 100*sum(predictTrain == Ytrain) / mTrain);
+fprintf('Test accuracy: %.2f%%\n', 100*sum(predictTest == Ytest) / mTest);
 
-fprintf('Classification Accuracy for Testing Data: %f\n', ...
-        100*sum(predicthTest == Ytest) / numel(Ytest));
-    
-fprintf('The final cost to assign the optimal weights are: %f\n', costVal(end));
+% plot cost function per epoch
+figure(1)
+plot(1:10:N, costVal(1:10:end)); grid on; box on
+title('Cost Function'); xlabel('Epoch'); ylabel('Cost')
 
-%%% 9. Plotting of cost function per epoch
-figure;
-plot(1:N, costVal);
-title('Cost function vs. epoch');
-xlabel('Epoch');
-ylabel('Cost Function');
-grid;
+%% Result
 
-%%% 10. Plot decision regions
-[X,Y] = meshgrid(linspace(-1.25,1.25,1000));
-Xout = [X(:) Y(:)];
-predictDes = 2*double(NN.sim(Xout) >= 0) - 1;
-figure;
+% colors
+clr = [0 0.741 0.447; 0.85 0.325 0.098];
+cmap = interp1([-1 0 1], ...
+    [0.929 0.694 0.125; 1 1 1; 0.494 0.184 0.556], linspace(-1,1,256));
 
-% Plot decision regions first
-h = plot(Xout(predictDes==-1,1), Xout(predictDes==-1,2), '.', 'MarkerEdgeColor', ...
-    [0.9290;0.6940;0.1250]);
-hold on;
-h2 = plot(Xout(predictDes==1,1), Xout(predictDes==1,2), '.', 'MarkerEdgeColor', ...
-    [0.4940;0.1840;0.5560]);
+% classification grid over domain of data
+[X1,X2] = meshgrid(linspace(-1.2,1.2,100));
+out = reshape(net.sim([X1(:) X2(:)]), size(X1));
+predictOut = sign(out);
 
-% Now plot points
-plot(Xtrain(Ytrain==-1,1), Xtrain(Ytrain==-1,2), '.', 'MarkerEdgeColor', ...
-    [0 0.4470 0.7410], 'MarkerSize', 12);
-plot(Xtrain(Ytrain==1,1), Xtrain(Ytrain==1,2), '.', 'MarkerEdgeColor', ...
-    [0.8500 0.3250 0.0980], 'MarkerSize', 12);
-plot(Xtest(Ytest==-1,1), Xtest(Ytest==-1,2), 'x', 'MarkerEdgeColor', ...
-    [0 0.4470 0.7410], 'MarkerSize', 12);
-plot(Xtest(Ytest==1,1), Xtest(Ytest==1,2), 'x', 'MarkerEdgeColor', ...
-    [0.8500 0.3250 0.0980], 'MarkerSize', 12);
-axis tight;
-legend('Decision Region - Negative', 'Decision Region - Positive', ...
-    'Training Examples - Negative', 'Training Examples - Positive', ...
-    'Test Examples - Negative', 'Test Examples - Positive');
+% plot predictions, with decision regions and data points overlayed
+figure(2); set(gcf, 'Position',[200 200 560 550])
+imagesc(X1(1,:), X2(:,2), out)  % 'CData',predictOut, 'AlphaData',out
+set(gca, 'CLim',[-1 1], 'ALim',[-1 1])
+colormap(cmap); colorbar
+hold on
+contour(X1, X2, out, [0 0], 'LineWidth',2, 'Color','k', ...
+    'DisplayName','boundaries')
+K = [-1 1];
+for i=1:numel(K)
+    indTrain = (Ytrain == K(i));
+    indTest = (Ytest == K(i));
+    line(Xtrain(indTrain,1), Xtrain(indTrain,2), 'LineStyle','none', ...
+        'Marker','o', 'MarkerSize',6, ...
+        'MarkerFaceColor',clr(i,:), 'MarkerEdgeColor','k', ...
+        'DisplayName',sprintf('%+d train',K(i)))
+    line(Xtest(indTest,1), Xtest(indTest,2), 'LineStyle','none', ...
+        'Marker','o', 'MarkerSize',6, ...
+        'MarkerFaceColor',brighten(clr(i,:),-0.5), 'MarkerEdgeColor','k', ...
+        'DisplayName',sprintf('%+d test',K(i)))
+end
+hold off; xlabel('X1'); ylabel('X2'); title('XOR dataset')
+legend('show', 'Orientation','Horizontal', 'Location','SouthOutside')
