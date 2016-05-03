@@ -74,7 +74,7 @@ classdef NeuralNet2 < handle
         inputSize % Single value denoting how many neurons are in the input layer
         hiddenSizes % Vector denoting how many neurons per hidden layer
         outputSize % Single value denoting how many neurons are in the output layer
-        weights % The weights
+        weights % The weights of the neural network per layer
     end
 
     methods (Access = public)
@@ -257,8 +257,6 @@ classdef NeuralNet2 < handle
 
             % Get activation function
             fcn = getActivationFunction(this.ActivationFunction);
-
-            skipFactor = floor(numIter/10);
 
             % For each iteration...
             for ii = 1:numIter
