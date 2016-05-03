@@ -1,6 +1,5 @@
 %% Neural Network Demo
 % Demonstrates how to use |NeuralNet| class for binary classification.
-%
 
 %% Data
 % Create XOR dataset
@@ -33,9 +32,8 @@ net.ActivationFunction = 'Tanh';
 net.BatchSize = 10;
 display(net)
 
-%% Find optimal weights
+%% Training and Testing Network
 
-% train network
 N = 5000;  % number of iterations
 disp('Training...'); tic
 costVal = net.train(Xtrain, Ytrain, N);

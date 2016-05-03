@@ -4,7 +4,7 @@ classdef NeuralNet2 < handle
     %   predictions using Artificial Neural Networks (ANN).  The primary purpose
     %   is to assist in the construction of the NeuralNetPlayground framework
     %   as well as providing a framework for training neural networks that
-    %   uses core MATLAB functionality only (i.e. no toolbox dependencies)
+    %   uses core MATLAB functionality only (i.e. no toolbox dependencies).
     %
     %   This class is initialized by specifying the total number of input
     %   layer neurons, hidden layer neurons for each hidden layer desired
@@ -16,16 +16,16 @@ classdef NeuralNet2 < handle
     %
     % NeuralNet2 Properties:
     %   LearningRate       - The learning rate for Stochastic Gradient Descent
-    %                        Must be strictly positive (i.e. > 0)
-    %                        Default value is 0.03
+    %                        Must be strictly positive (i.e. > 0).
+    %                        Default value is 0.03.
     %   ActivationFunction - The activation function to be applied to each
-    %                        neuron in the hidden and output layer
+    %                        neuron in the hidden and output layer.
     %                        The ones you can choose from are:
     %                        'linear': Linear
     %                        'relu': Rectified Linear Unit (i.e. ramp)
     %                        'tanh': Hyperbolic Tangent
     %                        'sigmoid': Sigmoidal
-    %                        Default is 'tanh'
+    %                        Default is 'tanh'.
     %
     %   RegularizationType - Apply regularization to the training process
     %                        if desired.
@@ -36,27 +36,39 @@ classdef NeuralNet2 < handle
     %                         Default is 'none'
     %
     %   RegularizationRate - The rate of regularization to apply (if desired)
-    %                        Must be non-negative (i.e. >= 0)
-    %                        Default is 0
+    %                        Must be non-negative (i.e. >= 0).
+    %                        Default is 0.
     %
-    %   BatchSize          - How many training examples selected per epoch
+    %   BatchSize          - Number of training examples selected per epoch
     %                        Choosing 1 example would implement true Stochastic
     %                        Gradient Descent while choosing the total number
-    %                        of examples would implement Batch Gradient Descent
+    %                        of examples would implement Batch Gradient Descent.
     %                        Choosing any value in between implements mini-batch
-    %                        Stochastic Gradient Descent
-    %                        Must be strictly positive (i.e. > 0) and integer
-    %                        Default is 10
+    %                        Stochastic Gradient Descent.
+    %                        Must be strictly positive (i.e. > 0) and integer.
+    %                        Default is 10.
     %
     %   Example Use
     %   -----------
     %   X = [0 0; 0 1; 1 0; 1 1]; % Define XOR data
     %   Y = [-1; 1; 1; -1];
     %   net = NeuralNet2([2 2 1]); % Create Neural Network object
-    %   N = 5000;                 % Perform 5000 iterations of Stochastic Gradient Descent
-    %   perf = net.train(X, Y, N); % Train the Neural Network
-    %   Ypred = NN.sim(X);        % Use trained object on original examples
-    %   plot(1:N, perf);          % Plot cost function per epoch
+    %   N = 5000;                  % Do 5000 iterations of Stochastic Gradient Descent
+    %
+    %   % Customize Neural Network engine
+    %   net.LearningRate = 0.1;         % Learning rate is set to 0.1
+    %   net.RegularizationType = 'L2';  % Regularization is L2
+    %   net.RegularizationRate = 0.001; % Regularization rate is 0.01
+    %
+    %   perf = net.train(X, Y, N);  % Train the Neural Network
+    %   Ypred = net.sim(X);         % Use trained object on original examples
+    %   plot(1:N, perf);            % Plot cost function per epoch
+    %
+    %   % Display results
+    %   disp('Training Examples and expected labels'); display(X); display(Y);
+    %   disp('Predicted outputs'); display(Ypred);
+    %
+    %   See also NEURALNETAPP
     %
     %   StackOverflowMATLABchat - http://chat.stackoverflow.com/rooms/81987/matlab-and-octave
     %   Authors: Raymond Phan - http://stackoverflow.com/users/3250829/rayryeng
@@ -86,7 +98,9 @@ classdef NeuralNet2 < handle
             %   hidden layer and the last element denotes how many neurons are
             %   in the output layer. Take note that the amount of neurons
             %   per layer that you specify does not include the bias units.
-            %   These will be included when training the network.
+            %   These will be included when training the network. Therefore,
+            %   the expected size of the vector is N + 2 where N is the total
+            %   number of hidden layers for the neural network.
             %
             %   The following example creates a neural network with 1 input
             %   neuron (plus a bias) in the input layer, 2 hidden neurons
@@ -146,6 +160,11 @@ classdef NeuralNet2 < handle
             %   This method initializes the neural network weights
             %   for connections between neurons so that all weights
             %   are within the range of [-0.5,0.5]
+            %
+            %   Uses:
+            %       net = NeuralNet2([1 2 1]);
+            %       net.init();
+            
             for i=1:numel(this.weights)
                 num = numel(this.weights{i});
                 this.weights{i}(:) = rand(num,1) - 0.5;  % [-0.5,0.5]
@@ -153,12 +172,12 @@ classdef NeuralNet2 < handle
         end
 
         function perf = train(this, X, Y, numIter)
-            % train  Perform training with Stochastic Gradient Descent (SGD)
+            % train  Perform neural network training with Stochastic Gradient Descent (SGD)
             %   This method performs training on the neural network structure
             %   that was specified when creating an instance of the class.
             %   Using training example features and their expected outcomes,
             %   trained network weights are created to facilitate future
-            %   predictions
+            %   predictions.
             %
             %   Inputs:
             %      X - Training example features as a 2D matrix of size M x N
@@ -349,7 +368,7 @@ classdef NeuralNet2 < handle
                         indwp = w > 0;
                         indwn = w < 0;
 
-                        % 2c - Perform the udpate on each condition
+                        % 2c - Perform the update on each condition
                         % individually
                         w(indwp) = max(0, w(indwp) - (uk + q(indwp)));
                         w(indwn) = min(0, w(indwn) + (uk - q(indwn)));
@@ -380,11 +399,6 @@ classdef NeuralNet2 < handle
             end
         end
 
-        % Perform forward propagation
-        % Note that the bias units are the last row of the matrix
-        % Inputs are in a 2D matrix of N x M
-        % N is the number of examples
-        % M is the number of features / number of input neurons
         function [OUT,OUTS] = sim(this, X)
             % sim  Perform Neural Network Predictions
             %   This method performs forward propagation using the
