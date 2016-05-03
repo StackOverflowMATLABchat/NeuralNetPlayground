@@ -77,7 +77,7 @@ classdef NeuralNet2 < handle
         weights % The weights of the neural network per layer
     end
 
-    methods (Access = public)
+    methods
         function this = NeuralNet2(layerSizes)
             % NeuralNet2  Create a Neural Network Instance
             %   The constructor takes in a vector of layer sizes where the
