@@ -1,25 +1,118 @@
 classdef NeuralNet2 < handle
+    % NeuralNet2 Neural Network implementation for the NeuralNetPlayground tool
+    %   This class implements the training (forward and backpropagation) and
+    %   predictions using Artificial Neural Networks (ANN).  The primary purpose
+    %   is to assist in the construction of the NeuralNetPlayground framework
+    %   as well as providing a framework for training neural networks that
+    %   uses core MATLAB functionality only (i.e. no toolbox dependencies).
+    %
+    %   This class is initialized by specifying the total number of input
+    %   layer neurons, hidden layer neurons for each hidden layer desired
+    %   and the total number of output layer neurons as a single vector.
+    %   With specified training examples and expected outputs, the neural
+    %   network weights are learned with Stochastic Gradient Descent.
+    %   The learned weights can be used to predict new examples given the
+    %   learned weights.
+    %
+    % NeuralNet2 Properties:
+    %   LearningRate       - The learning rate for Stochastic Gradient Descent
+    %                        Must be strictly positive (i.e. > 0).
+    %                        Default value is 0.03.
+    %   ActivationFunction - The activation function to be applied to each
+    %                        neuron in the hidden and output layer.
+    %                        The ones you can choose from are:
+    %                        'linear': Linear
+    %                        'relu': Rectified Linear Unit (i.e. ramp)
+    %                        'tanh': Hyperbolic Tangent
+    %                        'sigmoid': Sigmoidal
+    %                        Default is 'tanh'.
+    %
+    %   RegularizationType - Apply regularization to the training process
+    %                        if desired.
+    %                        The ones you can choose from are:
+    %                        'L1': L1 regularization
+    %                        'L2': L2 regularization
+    %                        'none': No regularization
+    %                         Default is 'none'
+    %
+    %   RegularizationRate - The rate of regularization to apply (if desired)
+    %                        Must be non-negative (i.e. >= 0).
+    %                        Default is 0.
+    %
+    %   BatchSize          - Number of training examples selected per epoch
+    %                        Choosing 1 example would implement true Stochastic
+    %                        Gradient Descent while choosing the total number
+    %                        of examples would implement Batch Gradient Descent.
+    %                        Choosing any value in between implements mini-batch
+    %                        Stochastic Gradient Descent.
+    %                        Must be strictly positive (i.e. > 0) and integer.
+    %                        Default is 10.
+    %
+    %   Example Use
+    %   -----------
+    %   X = [0 0; 0 1; 1 0; 1 1]; % Define XOR data
+    %   Y = [-1; 1; 1; -1];
+    %   net = NeuralNet2([2 2 1]); % Create Neural Network object
+    %   N = 5000;                  % Do 5000 iterations of Stochastic Gradient Descent
+    %
+    %   % Customize Neural Network engine
+    %   net.LearningRate = 0.1;         % Learning rate is set to 0.1
+    %   net.RegularizationType = 'L2';  % Regularization is L2
+    %   net.RegularizationRate = 0.001; % Regularization rate is 0.01
+    %
+    %   perf = net.train(X, Y, N);  % Train the Neural Network
+    %   Ypred = net.sim(X);         % Use trained object on original examples
+    %   plot(1:N, perf);            % Plot cost function per epoch
+    %
+    %   % Display results
+    %   disp('Training Examples and expected labels'); display(X); display(Y);
+    %   disp('Predicted outputs'); display(Ypred);
+    %
+    %   See also NEURALNETAPP
+    %
+    %   StackOverflowMATLABchat - http://chat.stackoverflow.com/rooms/81987/matlab-and-octave
+    %   Authors: Raymond Phan - http://stackoverflow.com/users/3250829/rayryeng
+    %            Amro         - http://stackoverflow.com/users/97160/amro
 
     properties (Access = public)
-        LearningRate
-        ActivationFunction
-        RegularizationType
-        RegularizationRate
-        BatchSize
+        LearningRate % The learning rate (positive number)
+        ActivationFunction % The desired activation function (string)
+        RegularizationType % The type of regularization (string)
+        RegularizationRate % The regularization rate (non-negative number)
+        BatchSize % The size of the batch per epoch (positive integer number)
     end
 
     properties (Access = private)
-        inputSize
-        hiddenSizes
-        outputSize
-        weights
+        inputSize % Single value denoting how many neurons are in the input layer
+        hiddenSizes % Vector denoting how many neurons per hidden layer
+        outputSize % Single value denoting how many neurons are in the output layer
+        weights % The weights of the neural network per layer
     end
 
     methods
-        % Class constructor
         function this = NeuralNet2(layerSizes)
+            % NeuralNet2  Create a Neural Network Instance
+            %   The constructor takes in a vector of layer sizes where the
+            %   first element denotes how many neurons are in the input layer,
+            %   the next N elements denote how many neurons are in each desired
+            %   hidden layer and the last element denotes how many neurons are
+            %   in the output layer. Take note that the amount of neurons
+            %   per layer that you specify does not include the bias units.
+            %   These will be included when training the network. Therefore,
+            %   the expected size of the vector is N + 2 where N is the total
+            %   number of hidden layers for the neural network.
+            %
+            %   The following example creates a neural network with 1 input
+            %   neuron (plus a bias) in the input layer, 2 hidden neurons
+            %   (plus a bias) in the first hidden layer, 3 hidden neurons
+            %   (plus a bias) in the second hidden layer and 1 output neuron
+            %   in the output layer
+            %
+            %   layerSizes = [1 2 3 1];
+            %   net = NeuralNet2(layerSizes);
+
             % default params
-            this.LearningRate = 0.003;
+            this.LearningRate = 0.03;
             this.ActivationFunction = 'Tanh';
             this.RegularizationType = 'None';
             this.RegularizationRate = 0;
@@ -62,30 +155,81 @@ classdef NeuralNet2 < handle
             outMax = max(Y);
         end
 
-        % Initialize neural network weights
         function init(this)
-            % initialize with random weights
+            % init  Initialize the Neural Network Weights
+            %   This method initializes the neural network weights
+            %   for connections between neurons so that all weights
+            %   are within the range of [-0.5,0.5]
+            %
+            %   Uses:
+            %       net = NeuralNet2([1 2 1]);
+            %       net.init();
+            
             for i=1:numel(this.weights)
                 num = numel(this.weights{i});
                 this.weights{i}(:) = rand(num,1) - 0.5;  % [-0.5,0.5]
             end
         end
 
-        % Perform training with Stochastic Gradient Descent
         function perf = train(this, X, Y, numIter)
+            % train  Perform neural network training with Stochastic Gradient Descent (SGD)
+            %   This method performs training on the neural network structure
+            %   that was specified when creating an instance of the class.
+            %   Using training example features and their expected outcomes,
+            %   trained network weights are created to facilitate future
+            %   predictions.
+            %
+            %   Inputs:
+            %      X - Training example features as a 2D matrix of size M x N
+            %          M is the total number of examples and N are the
+            %          total number of features.  M is expected to be the
+            %          same size as the number of input layer neurons.
+            %
+            %      Y - Training example expected outputs as a 2D matrix of size
+            %          M x P where M is the total number of examples and P is
+            %          the total number of output neurons in the output layer.
+            %
+            %      numIter - Number of iterations Stochastic Gradient Descent
+            %                should take while training. This is an optional
+            %                parameter and the number of iterations defaults to
+            %                1 if omitted.
+            %
+            %   Outputs:
+            %      perf - An array of size numIter x 1 which denotes
+            %             the cost between the predicted outputs and
+            %             expected outputs at each iteration of learning
+            %             the weights
+            %
+            %   Uses:
+            %       net = NeuralNet2([1 2 1]); % Create NN object
+            %       % Create example data here stored in X and Y
+            %       %...
+            %       %...
+            %       perf = net.train(X, Y); % Perform 1 iteration
+            %       perf2 = net.train(X, Y, 500); % Perform 500 iterations
+            %
+            %       See also NEURALNET2, SIM
 
+            % If the number of iterations is not specified, assume 1
             if nargin < 4, numIter = 1; end
 
             % Ensure correct sizes
-            assert(size(X,1) == size(Y,1))
+            assert(size(X,1) == size(Y,1), ['Total number of examples ' ...
+                   'the inputs and outputs should match'])
 
             % Ensure regularization rate and batch size is proper
-            assert(this.BatchSize >= 1);
-            assert(this.RegularizationRate >= 0);
+            assert(this.BatchSize >= 1, 'Batch size should be 1 or more');
+            assert(this.RegularizationRate >= 0, ['Regularization rate ' ...
+                   'should be 0 or larger']);
 
             % Check if we have specified the right regularization type
             regType = this.RegularizationType;
-            assert(any(strcmpi(regType, {'l1', 'l2', 'none'})));
+            assert(any(strcmpi(regType, {'l1', 'l2', 'none'})), ...
+                   ['Ensure that you choose one of ''l1'', ''l2'' or '...
+                   '''none'' for the regularization type']);
+
+            % Ensure number of iterations is strictly positive
+            assert(numIter >= 1, 'Number of iterations should be positive');
 
             % Initialize cost function array
             perf = zeros(1, numIter);
@@ -97,7 +241,8 @@ classdef NeuralNet2 < handle
             L = numel(this.weights);
 
             % Get batch size
-            B = this.BatchSize;
+            % Remove decimal places in case of improper input
+            B = floor(this.BatchSize);
 
             % Safely catch if batch size is larger than total number
             % of examples
@@ -131,8 +276,6 @@ classdef NeuralNet2 < handle
 
             % Get activation function
             fcn = getActivationFunction(this.ActivationFunction);
-
-            skipFactor = floor(numIter/10);
 
             % For each iteration...
             for ii = 1:numIter
@@ -225,7 +368,7 @@ classdef NeuralNet2 < handle
                         indwp = w > 0;
                         indwn = w < 0;
 
-                        % 2c - Perform the udpate on each condition
+                        % 2c - Perform the update on each condition
                         % individually
                         w(indwp) = max(0, w(indwp) - (uk + q(indwp)));
                         w(indwn) = min(0, w(indwn) + (uk - q(indwn)));
@@ -256,23 +399,64 @@ classdef NeuralNet2 < handle
             end
         end
 
-        % Perform forward propagation
-        % Note that the bias units are the last row of the matrix
-        % Inputs are in a 2D matrix of N x M
-        % N is the number of examples
-        % M is the number of features / number of input neurons
         function [OUT,OUTS] = sim(this, X)
+            % sim  Perform Neural Network Predictions
+            %   This method performs forward propagation using the
+            %   learned weights after training. Forward propagation
+            %   uses the learned weights to propogate information
+            %   throughout the neural network and the predicted outcome
+            %   is seen at the output layer.
+            %
+            %   Inputs:
+            %      X - Training examples to predict their outcomes
+            %          This is a M x N matrix where M is the total number of
+            %          examples and N is the total number of features.
+            %          N must equal to the total number of neurons in the input
+            %          layer
+            %
+            %   Outputs:
+            %      OUT - The predicted outputs using the training examples in X.
+            %            This is a M x P matrix where M is the total number of
+            %            training examples and P is the total number of output
+            %            neurons
+            %
+            %     OUTS - This is a 1D cell array of size 1 x NN where NN
+            %            is the total number of layers in the neural network
+            %            including the input and output layers.  Therefore, if
+            %            K is equal to the total number of hidden layers,
+            %            NN = K+2.  This cell array contains the outputs of
+            %            each example per layer. Specifically, each element
+            %            OUTS{ii} would be a M x Q matrix where Q would be the
+            %            total number of neurons in layer ii without the bias
+            %            unit. ii=1 is the hidden layer and ii=NN is the output
+            %            layer.  OUTS{ii} would contain all of the outputs for
+            %            each example in layer ii.
+            %
+            %   Uses:
+            %       net = NeuralNet2([1 2 1]); % Create NN object
+            %       % Create your training data and train your neural network
+            %       % here...
+            %       % Also create test data here stored in XX...
+            %       % ...
+            %       OUT = net.sim(XX); % Find predictions
+            %       [OUT,OUTS] = net.sim(XX); % Find predictions and outputs
+            %                                 % per layer
+            %
+            %   See also NEURALNET2, TRAIN
+
             % Check if the total number of features matches the
             % total number of input neurons
-            assert(size(X,2) == this.inputSize);
+            assert(size(X,2) == this.inputSize, ['Number of features '...
+                   'should match the number of input neurons']);
 
             % Get total number of examples
             N = size(X,1);
 
             %%% Begin algorithm
-            % Start with first layer
+            % Start with input layer
             OUT = X;
 
+            % Also initialize cell array with input layer's contents
             OUTS = cell(1,numel(this.weights)+1);
             OUTS{1} = OUT;
 
@@ -288,7 +472,6 @@ classdef NeuralNet2 < handle
             end
         end
     end
-
 end
 
 function fcn = getActivationFunction(activation)
