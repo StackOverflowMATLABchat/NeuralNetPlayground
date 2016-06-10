@@ -42,7 +42,7 @@ This code can only be run on versions from R2009b and onwards due to the syntax 
 
 ## Running the Program
 
-Ensure that both files: `NeuralNetApp.m` and `NeuralNet2.m`In the MATLAB Command Window, simply run the `NeuralNetApp.m` file. Assuming you are working in the directory of where you stored, type in the following and press ENTER:
+Ensure that both files `NeuralNetApp.m` and `NeuralNet2.m` are in the same directory.  In the MATLAB Command Window, simply run the `NeuralNetApp.m` file within this directory. Assuming you are working in the directory of where you stored, type in the following and press ENTER:
 
     >> NeuralNetApp
     
@@ -72,11 +72,13 @@ Each widget will be discussed below, specifically how you would use each of thes
 
 #### Which dataset do you want to use? 
 
-This is a dropdown menu that allows you to choose which dataset you would like the Neural Network to work on, whether you are using regression or binary classification.  The data are two-dimensional and are generated randomly within a dynamic range of `[-1.1, 1.1]` for both dimensions.  Values that are positive belong to one label and values that are negative belong to another.  Points that are orange denote negative labels and points that are blue denote positive labels.  You may choose from one of four possible datasets:
+This is a dropdown menu that allows you to choose which dataset you would like the Neural Network to work on, whether you are using regression or binary classification.  The data are two-dimensional and are generated randomly within a dynamic range of `[-6, +6]` for both dimensions.  A 2D point that is considered positive belongs to one label and values that are negative belong to another.  Points that are orange denote negative labels and points that are blue denote positive labels.  
+
+You may choose from one of four possible datasets:
 
 ##### Circle
 
-A dataset where one points belonging to one label are within some radius of a circle and the other label is within a larger radius but do not intersect with any points in the smaller radius of points.  Below is such an example:
+A dataset where one set of points belonging to one label are within some radius of a circle and the other set of points belong to a label within a larger radius but do not intersect with any points in the smaller radius of points.  Below is such an example:
     
 <img src = "http://i.stack.imgur.com/y269P.png" style width="50%">
 
@@ -101,7 +103,7 @@ A challenging dataset.  The name speaks for itself.  You can see below on what a
 
 #### Ratio of training to test data
 
-This is a slider widget that asks you how much percentage of your data should be training and the rest is test data.  500 data points are always generated and the training and test data is split according to the value in this slider.  Once the data is generated, a random permutation of points are placed in both sets for use in this tool.  The default decomposition is 50%, so half of the data are training and the other are testing.
+This is a slider widget that asks you how much percentage of your data should be training and the rest being test data.  500 data points are always generated and the training and test data is split according to the value in this slider.  Once the data is generated, a random permutation of points are placed in both sets for use in this tool.  The default decomposition is 50%, so half of the data are training and the other are testing.
 
 #### Noise
 
@@ -132,7 +134,7 @@ The available features are the following:
 
 ### Parameters
 
-The parameters section is shown below:
+The Parameters section is shown below:
 
 <img src = "http://i.stack.imgur.com/o5MSO.png" style width="100%">
 
@@ -140,7 +142,7 @@ This section allows you to customize how exactly the neural network should be tr
 
 #### Learning Rate
 
-This stems from Stochastic Gradient Descent and so the learning rate is the amount you want to move forward towards the right solution. This dropdown menu allows you to choose between one of several learning rates. Setting a value too large may make the training oscillate or even diverge and making the value too small may take a long time to allow the training to converge.  Experiment with this value for different datasets.  The default is 0.3.
+This stems from Stochastic Gradient Descent and so the learning rate is the amount you want to move forward towards the right solution. This dropdown menu allows you to choose between one of several learning rates. Setting a value too large may make the training oscillate or even diverge and making the value too small may take a long time to allow the training to converge.  Experiment with this value for different datasets.  The default is 0.03.
 
 #### Activation Function
 
@@ -188,13 +190,13 @@ For each hidden neuron that is visualized, you can see the intermediate outputs 
 
 ### Run
 
-Of course once you set everything up, you'll want to actually run the training.  That's what the Run section is for and it is shown below highlighted"
+Of course once you set everything up, you'll want to actually run the training.  That's what the Run section is for and it is shown below highlighted:
 
 <img src = "http://i.stack.imgur.com/8MApm.png" style width="100%">
 
 There are three buttons here that you can click on:
 
-- `Run`: This starts the neural network training.  As you run the training stage, the number of iterations that Stochastic Gradient Descent that have passed will be shown in an Iterations counter to the right of the three buttons.  At any time, you can **pause** the training by clicking on the `Run` button again, where the button's text changes to `Pause`.  You may also use this opportunity to change the configuration of the neural network and run the training using this as a starting point so you can interactively see how changing the neural network structure affects the output.
+- `Run`: This starts the neural network training.  As you run the training stage, the number of iterations that Stochastic Gradient Descent has made will be shown in an Iterations counter to the right of the three buttons.  At any time, you can **pause** the training by clicking on the `Run` button again, where the button's text changes to `Pause`.  You may also use this opportunity to change the configuration of the neural network and run the training using this as a starting point so you can interactively see how changing the neural network structure affects the output.
 - `Step`: Choosing `Run` allows the training to run automatically. You can also choose to **step** through each iteration by clicking on this button so that one iteration passes per click.  Clicking on this while the `Run` option is enabled will automatically pause the training and allows you to step through each iteration interactively.
 - `Reset`: This resets the neural network so you are starting with a fresh new one that requires to be trained. The number of iterations is reset as well as all of the weights in the neural network itself.
 
