@@ -1038,7 +1038,9 @@ function IDX = splitData(labels, trainRatio)
     % random partition
     % (without stratification, assumes two classes with equal proportions)
     N = numel(labels);
-    ind = randperm(N, round(trainRatio*N));
+    %ind = randperm(N, round(trainRatio*N));
+    ind = randperm(N);
+    ind = ind(1:round(trainRatio*N));
 
     % train logical indices
     IDX = false(N,1);
