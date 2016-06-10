@@ -53,6 +53,9 @@ classdef NeuralNet2 < handle
     %   X = [0 0; 0 1; 1 0; 1 1]; % Define XOR data
     %   Y = [-1; 1; 1; -1];
     %   net = NeuralNet2([2 2 1]); % Create Neural Network object
+    %                              % Two input layer neurons, one hidden
+    %                              % layer with two neurons and one output
+    %                              % layer neuron
     %   N = 5000;                  % Do 5000 iterations of Stochastic Gradient Descent
     %
     %   % Customize Neural Network engine
