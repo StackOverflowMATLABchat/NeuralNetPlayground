@@ -133,6 +133,7 @@ The available features are the following:
 - `X2`: The feature `X2` itself which is just using the second dimension of the data
 - `X1^2`: The feature `X1` but squared
 - `X2^2`: The feature `X2` but squared
+- `X1*X2`: Both features of `X1` and `X2` multiplied together
 - `sin(X1)`: The feature `X1` with the `sin` operation applied to it
 - `sin(X2)`: The feature `X2` with the `sin` operation applied to it
 
