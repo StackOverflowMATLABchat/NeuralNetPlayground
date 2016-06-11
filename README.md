@@ -113,6 +113,10 @@ You can add uniformly distributed random noise to the data to make the neural ne
 
 The technique for training the neural network in this tool is to perform Stochastic Gradient Descent.  At each iteration or epoch, randomly sampled training samples of a specified batch size are selected and the neural network gets updated so that regression or classification of these points will be more accurate.  This batch size can be specified here and the default is 10.
 
+#### Regenerate
+
+Click on this button if you want to regenerate the training and test data so that new randomized data points are created so that training the neural network is a new experience.
+
 ---
 
 ### Inputs
