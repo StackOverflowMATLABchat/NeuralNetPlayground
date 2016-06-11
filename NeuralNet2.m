@@ -53,12 +53,15 @@ classdef NeuralNet2 < handle
     %   X = [0 0; 0 1; 1 0; 1 1]; % Define XOR data
     %   Y = [-1; 1; 1; -1];
     %   net = NeuralNet2([2 2 1]); % Create Neural Network object
+    %                              % Two input layer neurons, one hidden
+    %                              % layer with two neurons and one output
+    %                              % layer neuron
     %   N = 5000;                  % Do 5000 iterations of Stochastic Gradient Descent
     %
     %   % Customize Neural Network engine
     %   net.LearningRate = 0.1;         % Learning rate is set to 0.1
     %   net.RegularizationType = 'L2';  % Regularization is L2
-    %   net.RegularizationRate = 0.001; % Regularization rate is 0.01
+    %   net.RegularizationRate = 0.001; % Regularization rate is 0.001
     %
     %   perf = net.train(X, Y, N);  % Train the Neural Network
     %   Ypred = net.sim(X);         % Use trained object on original examples
@@ -159,10 +162,16 @@ classdef NeuralNet2 < handle
             % init  Initialize the Neural Network Weights
             %   This method initializes the neural network weights
             %   for connections between neurons so that all weights
-            %   are within the range of [-0.5,0.5]
+            %   are within the range of [-0.5,0.5]. Take note that this
+            %   method is run when you create an instance of the object.
+            %   You would call init if you want to reinitialize the neural
+            %   network and start from the beginning.
             %
             %   Uses:
             %       net = NeuralNet2([1 2 1]);
+            %       % Other code...
+            %       % ...
+            %       % (Re-)initialize weights
             %       net.init();
             
             for i=1:numel(this.weights)
@@ -276,7 +285,10 @@ classdef NeuralNet2 < handle
 
             % Get activation function
             fcn = getActivationFunction(this.ActivationFunction);
-
+            
+            % Get derivative of activation function
+            dfcn = getDerivativeActivationFunction(this.ActivationFunction);
+            
             % For each iteration...
             for ii = 1:numIter
                 % If the batch size is equal to the total number of examples
@@ -287,7 +299,9 @@ classdef NeuralNet2 < handle
                 else
                     % Randomly select examples corresponding to the batch size
                     % if the batch size is not equal to the number of examples
-                    ind = randperm(N, B);
+                    %ind = randperm(N, B);
+                    ind = randperm(N);
+                    ind = ind(1:B);
                 end
 
                 % Select out the training example features and expected outputs
@@ -313,8 +327,6 @@ classdef NeuralNet2 < handle
                 end
 
                 %%% Perform backpropagation
-                % Get derivative of activation function
-                dfcn = getDerivativeActivationFunction(this.ActivationFunction);
 
                 % Compute sensitivities for output layer
                 delta{end} = (xNeuron{end} - OUT) .* dfcn(sNeuron{end});
