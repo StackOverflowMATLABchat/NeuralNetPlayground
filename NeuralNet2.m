@@ -134,7 +134,7 @@ classdef NeuralNet2 < handle
     %                                   % -1 if you are using tanh.
     %   net = NeuralNet2([numFeatures 4 numClasses]); % Create Neural Network object
     %                                   % Four input layer neurons, one hidden
-    %                                   % layer with 10 neurons and one output layer
+    %                                   % layer with four neurons and three output layer
     %                                   % neuron
     %   N = 5000;                   % Do 5000 iterations of Stochastic Gradient Descent
     %   % Customize Neural Network engine
