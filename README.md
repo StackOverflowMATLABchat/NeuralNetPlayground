@@ -23,7 +23,7 @@ power of MATLAB and matrices.
 The goal for this framework is given randomly generated training and test data
 that fall into two classes that conform to certain shapes or specifications,
 and given the configuration of a neural network, the goal is to perform either
-regression or binary classification of this data and interactively show the
+regression or classification of this data and interactively show the
 results to the user, specifically a classification or regression map of the
 data, as well as numerical performance measures such as the training and test
 loss and their values plotted on a performance curve over each iteration.
