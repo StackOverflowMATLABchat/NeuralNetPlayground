@@ -75,7 +75,7 @@ classdef NeuralNet2 < handle
     %                        Must be non-negative (i.e. >= 0).
     %                        Default is 0.
     %
-    %   BatchSize          - Number of training examples selected per epoch
+    %   BatchSize          - Number of training examples selected per iteration
     %                        Choosing 1 example would implement true Stochastic
     %                        Gradient Descent while choosing the total number
     %                        of examples would implement Batch Gradient Descent.
@@ -107,7 +107,7 @@ classdef NeuralNet2 < handle
     %   Yraw = net.sim(X);          % Use trained object on original examples
     %   Ypred = ones(size(Yraw));   % Perform classification with thresholding
     %   Ypred(Yraw < 0) = -1;
-    %   plot(1:N, perf);            % Plot cost function per epoch
+    %   plot(1:N, perf);            % Plot cost function per iteration
     %
     %   % Display results
     %   disp('Training Examples and expected labels'); display(X); display(Y);
@@ -146,7 +146,7 @@ classdef NeuralNet2 < handle
     %   Yraw = net.sim(meas);         % Use trained object on original examples
     %   [~, Ypred] = max(Yraw, [], 2); % Determine which class has the largest
     %                                  % response per example
-    %   plot(1:N, perf);            % Plot cost function per epoch
+    %   plot(1:N, perf);            % Plot cost function per iteration
     %   % Display results
     %   disp('Training Examples and expected labels'); display(X); display(Y);
     %   disp('Predicted outputs'); display(Ypred);
@@ -175,7 +175,7 @@ classdef NeuralNet2 < handle
     %   net.OutputActivationFunction = 'linear';  % linear output activation function
     %   perf = net.train(X, Y, N);  % Train the Neural Network
     %   Ypred = net.sim(X);         % Use trained object on original examples
-    %   plot(1:N, perf);            % Plot cost function per epoch
+    %   plot(1:N, perf);            % Plot cost function per iteration
     %
     %   % Display results
     %   disp('Absolute difference between predicted and true values');
@@ -195,7 +195,7 @@ classdef NeuralNet2 < handle
         OutputActivationFunction % The desired output activation function (string)
         RegularizationType % The type of regularization (string)
         RegularizationRate % The regularization rate (non-negative number)
-        BatchSize % The size of the batch per epoch (positive integer number)
+        BatchSize % The size of the batch per iteration (positive integer number)
     end
 
     properties (Access = private)
@@ -438,7 +438,7 @@ classdef NeuralNet2 < handle
                     ind = 1 : N;
                 else
                     % Randomly select examples corresponding to the batch size
-                    % if the batch size is not equal to the number of examples                    
+                    % if the batch size is not equal to the number of examples
                     ind = randperm(N);
                     ind = ind(1 : B);
                 end
@@ -578,9 +578,11 @@ classdef NeuralNet2 < handle
             %            each example per layer. Specifically, each element
             %            OUTS{ii} would be a M x Q matrix where Q would be the
             %            total number of neurons in layer ii without the bias
-            %            unit. ii=1 is the hidden layer and ii=NN is the output
-            %            layer.  OUTS{ii} would contain all of the outputs for
-            %            each example in layer ii.
+            %            unit. ii=1 is the input layer and ii=NN is the output
+            %            layer.  Remember if you specify a network with no hidden
+            %            layers, this would mean that K=0 and so NN = 2.
+            %            OUTS{ii} would contain all of the outputs for each
+            %            example in layer ii.
             %
             %   Uses:
             %       net = NeuralNet2([1 2 1]); % Create NN object
@@ -624,9 +626,9 @@ classdef NeuralNet2 < handle
                 % Compute inputs into each neuron and corresponding
                 % outputs
                 if ii == numel(this.weights)
-                    OUT = fcnOut([OUT ones(N,1)] * this.weights{ii});
+                    OUT = fcnOut([OUT ones(N, 1)] * this.weights{ii});
                 else
-                    OUT = fcn([OUT ones(N,1)] * this.weights{ii});
+                    OUT = fcn([OUT ones(N, 1)] * this.weights{ii});
                 end
                 OUTS{ii + 1} = OUT;
             end
